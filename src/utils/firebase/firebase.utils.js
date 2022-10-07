@@ -1,0 +1,100 @@
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signInWithRedirect,
+  signInWithPopup,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+
+// getFirestore: instantiate getFirestore
+// doc: allows retrive document
+// getDoc, setDoc: set/get data from documents
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD4VtjeDGdpk8PDsaTOkIRmM17Z_IsVYsk",
+  authDomain: "crwn-clothing-db-2ee97.firebaseapp.com",
+  projectId: "crwn-clothing-db-2ee97",
+  storageBucket: "crwn-clothing-db-2ee97.appspot.com",
+  messagingSenderId: "332224956597",
+  appId: "1:332224956597:web:5d3434e140dcdcacedd6fc",
+};
+
+///////////////////////////////////////////////////////////////////// login 通用操作 ///////////////////////////////////////////////////////////////////////////
+
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: "select_account",
+});
+
+export const auth = getAuth();
+
+///////////////////////////////////////////////////////////////////// popup login  ///////////////////////////////////////////////////////////////////////////
+
+export const signInWithGooglePopup = () =>
+  signInWithPopup(auth, googleProvider);
+
+///////////////////////////////////////////////////////////////////// redirect login  ///////////////////////////////////////////////////////////////////////////
+
+// instantiate
+// 可以用多种Provider：google，facebook
+export const signInWithGoogleRedirect = () =>
+  signInWithRedirect(auth, googleProvider);
+
+///////////////////////////////////////////////////////////////////// password sign up ///////////////////////////////////////////////////////////////////////////
+
+//step1: import createUserWithEmailAndPassword from "firebase/auth";
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+  return await createUserWithEmailAndPassword(auth, email, password);
+};
+
+///////////////////////////////////////////////////////////////////// password sign in ///////////////////////////////////////////////////////////////////////////
+
+//step1: import signInWithEmailAndPassword from "firebase/auth";
+export const signInAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+  return await signInWithEmailAndPassword(auth, email, password);
+};
+
+///////////////////////////////////////////////////////////////////// firestore ///////////////////////////////////////////////////////////////////////////
+
+//use db to access database
+export const db = getFirestore();
+//如果additional info 存在，存入doc。 用户密码登录时，userAuth内的displayName 为空，displayName通过additionalInformation传入
+export const createUserDocumentFromAuth = async (
+  userAuth,
+  additionalInformation = {}
+) => {
+  if (!userAuth) return;
+  //获取 users collection下的doc reference
+  //如果users collection不存在，创建新
+  //在sign-in.jsx中google登录后，传入user uid
+  const userDocRef = doc(db, "users", userAuth.uid);
+  // getData from reference
+  const userSnapShot = await getDoc(userDocRef);
+
+  // if user data  not exist, create new data
+  // else return userDocRef
+  if (!userSnapShot.exists()) {
+    //creat new data to reference
+    const { displayName, email } = userAuth;
+    const createdAt = new Date();
+    try {
+      await setDoc(userDocRef, {
+        displayName,
+        email,
+        createdAt,
+        ...additionalInformation,
+      });
+    } catch (error) {
+      console.log("error creating the user: ", error);
+    }
+  }
+  return userDocRef;
+};
