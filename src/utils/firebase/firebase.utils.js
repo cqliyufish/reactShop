@@ -13,7 +13,16 @@ import {
 // getFirestore: instantiate getFirestore
 // doc: allows retrive document
 // getDoc, setDoc: set/get data from documents
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  writeBatch,
+  query,
+  getDocs,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD4VtjeDGdpk8PDsaTOkIRmM17Z_IsVYsk",
@@ -80,6 +89,7 @@ export const onAuthStateChangedListener = (callback) => {
 
 //use db to access database
 export const db = getFirestore();
+
 //如果additional info 存在，存入doc。 用户密码登录时，userAuth内的displayName 为空，displayName通过additionalInformation传入
 export const createUserDocumentFromAuth = async (
   userAuth,
@@ -111,4 +121,41 @@ export const createUserDocumentFromAuth = async (
     }
   }
   return userDocRef;
+};
+
+///////////////////////////////////////////////////////////////////// firestore 存入商品数据///////////////////////////////////////////////////////////////////////////
+
+export const addCollectionAndDocuments = async (
+  collectionKey,
+  objectsToAdd
+) => {
+  const batch = writeBatch(db);
+  // get the collection reference
+  const collectionRef = collection(db, collectionKey);
+  //transction by using writeBatch
+  objectsToAdd.forEach((object) => {
+    // creat docRef for each object(mens/womens/...)
+    const docRef = doc(collectionRef, object.title.toLowerCase());
+    batch.set(docRef, object);
+  });
+
+  await batch.commit();
+  console.log("done");
+};
+
+///////////////////////////////////////////////////////////////////// firestore get商品数据///////////////////////////////////////////////////////////////////////////
+
+//1. import query, getDocs from "firebase/firestore"
+export const getCategoriesAndDocuments = async () => {
+  const collectionRef = collection(db, "collections");
+  const q = query(collectionRef);
+  //return array of documents
+  const querySnapshot = await getDocs(q);
+  const categoryMap = querySnapshot.docs.reduce((acc, docSnapshot) => {
+    const { title, items } = docSnapshot.data();
+    acc[title.toLowerCase()] = items;
+    return acc;
+  }, {});
+
+  return categoryMap;
 };
