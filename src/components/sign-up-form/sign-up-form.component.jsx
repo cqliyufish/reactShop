@@ -8,8 +8,6 @@ import {
 import Button from "components/button/button.component";
 import "./sign-up-form.styles.scss";
 
-import { UserContext } from "context/user.context";
-
 const defualtFormFields = {
   displayName: "",
   email: "",
@@ -21,7 +19,6 @@ const SignUpForm = () => {
   const [formFields, setFormFields] = useState(defualtFormFields);
   const { displayName, email, password, confirmPassword } = formFields;
 
-  const { setCurrentUser } = useContext(UserContext);
   ////////////////////////////////////////////////////////////////   input框中显示输入文字  ////////////////////////////////////////////////////////////////
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -53,7 +50,6 @@ const SignUpForm = () => {
         password
       );
 
-      setCurrentUser(user);
       //创建user doc reference
       await createUserDocumentFromAuth(user, { displayName });
 
