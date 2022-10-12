@@ -3,13 +3,15 @@ import logger from "redux-logger";
 import { rootReducer } from "./root-reducer";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import thunk from "redux-thunk";
 
-//只在开发阶段使用logger
-//filter(Boolean)把Array中false的去掉
+//step1. import
+import { rootSaga } from "./root-saga";
+import createSagaMiddleware from "redux-saga";
+//step2. create middleware
+const sagaMiddleware = createSagaMiddleware();
 const middleWares = [
   process.env.NODE_ENV === "development" && logger,
-  thunk,
+  sagaMiddleware,
 ].filter(Boolean);
 
 const composeEnhancer =
@@ -18,11 +20,9 @@ const composeEnhancer =
     window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) ||
   compose;
 
-// blacklist不存入localstorage的数据
 const persistConfig = {
   key: "root",
   storage,
-  // blacklist: ["user"],
   whitelist: ["cart"],
 };
 
@@ -35,5 +35,6 @@ export const store = createStore(
   undefined,
   composedEnhancers
 );
-
+//step3. run
+sagaMiddleware.run(rootSaga);
 export const persistor = persistStore(store);

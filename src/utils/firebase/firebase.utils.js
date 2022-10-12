@@ -84,7 +84,26 @@ export const onAuthStateChangedListener = (callback) => {
   // auth change， invoke callback
   onAuthStateChanged(auth, callback);
 };
+///////////////////////////////////////////////////////////////////// 获得current user ///////////////////////////////////////////////////////////////////////////
 
+export const getCurrentUser = () => {
+  return new Promise((resolve, reject) => {
+    // onAuthStateChanged(p1,p2,p3)
+    // p1: auth
+    // p2: callback
+    // p3: 可选，如果error callback
+    const unsubscribe = onAuthStateChanged(
+      auth,
+
+      (userAuth) => {
+        // close listener, release memeory
+        unsubscribe();
+        resolve(userAuth);
+      },
+      reject
+    );
+  });
+};
 ///////////////////////////////////////////////////////////////////// firestore ///////////////////////////////////////////////////////////////////////////
 
 //use db to access database
@@ -120,7 +139,8 @@ export const createUserDocumentFromAuth = async (
       console.log("error creating the user: ", error);
     }
   }
-  return userDocRef;
+  return userSnapShot;
+  // return userDocRef;
 };
 
 ///////////////////////////////////////////////////////////////////// firestore 存入商品数据///////////////////////////////////////////////////////////////////////////

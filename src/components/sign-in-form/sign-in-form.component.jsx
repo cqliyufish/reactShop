@@ -1,14 +1,12 @@
 import FormInput from "components/form-input/form-input.component";
 import { useState } from "react";
-import {
-  signInWithGooglePopup,
-  createUserDocumentFromAuth,
-  signInAuthUserWithEmailAndPassword,
-} from "utils/firebase/firebase.utils.js";
 
 import Button, {
   BUTTON_TYPE_CLASSES,
 } from "components/button/button.component";
+
+import { useDispatch } from "react-redux";
+import { googleSignInStart, emailSignInStart } from "store/user/user.action";
 import "./sign-in-form.styles.scss";
 
 const defualtFormFields = {
@@ -17,13 +15,14 @@ const defualtFormFields = {
 };
 
 const SignInForm = () => {
+  const dispatch = useDispatch();
   const [formFields, setFormFields] = useState(defualtFormFields);
   const { email, password } = formFields;
 
   ////////////////////////////////////////////////////////////////   google sign in  ////////////////////////////////////////////////////////////////
 
   const logGoogleUser = async () => {
-    const { user } = await signInWithGooglePopup();
+    dispatch(googleSignInStart());
   };
 
   ////////////////////////////////////////////////////////////////   input框中显示输入文字  ////////////////////////////////////////////////////////////////
@@ -43,11 +42,7 @@ const SignInForm = () => {
     event.preventDefault();
 
     try {
-      const { user } = await signInAuthUserWithEmailAndPassword(
-        email,
-        password
-      );
-
+      dispatch(emailSignInStart(email, password));
       resetFormFields();
     } catch (error) {
       switch (error.code) {

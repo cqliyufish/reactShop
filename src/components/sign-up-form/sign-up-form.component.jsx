@@ -1,12 +1,10 @@
 import FormInput from "components/form-input/form-input.component";
-import { useState, useContext } from "react";
-import {
-  createAuthUserWithEmailAndPassword,
-  createUserDocumentFromAuth,
-} from "utils/firebase/firebase.utils.js";
+import { useState } from "react";
 
 import Button from "components/button/button.component";
 import "./sign-up-form.styles.scss";
+import { signUpStart } from "store/user/user.action";
+import { useDispatch } from "react-redux";
 
 const defualtFormFields = {
   displayName: "",
@@ -16,6 +14,7 @@ const defualtFormFields = {
 };
 
 const SignUpForm = () => {
+  const dispatch = useDispatch();
   const [formFields, setFormFields] = useState(defualtFormFields);
   const { displayName, email, password, confirmPassword } = formFields;
 
@@ -44,15 +43,7 @@ const SignUpForm = () => {
     }
 
     try {
-      //利用email, password create userAuth
-      const { user } = await createAuthUserWithEmailAndPassword(
-        email,
-        password
-      );
-
-      //创建user doc reference
-      await createUserDocumentFromAuth(user, { displayName });
-
+      dispatch(signUpStart(email, password, displayName));
       //clear form
       resetFormFields();
     } catch (error) {
